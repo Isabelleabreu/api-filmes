@@ -84,7 +84,7 @@ const inserirFilme = async function(filme, contentType){
 
     try {
 
-        if(String(contentType).toUpperCase() == 'APPLICATION/JSON') {
+        if(String(contentType).toUpperCase() == 'APPLICATION/JSON'){
 
             //chama a função de validação dos dados de cadastro
             let validarDados = await validarDadosFilme(filme)
@@ -95,21 +95,35 @@ const inserirFilme = async function(filme, contentType){
             let result = await filmeDAO.setInsertFilms(filme)
                  
             if(result){
+                
+                //Chama a função para recerber o Id gerado no BD
+                let lastIdFilm = await filmeDAO.getSelectLastIdFilm()
+
+                if(lastIdFilm){
+                
+                //Adiciona no JSON de filme o ID que foi gerado pelo BD
+                filme.id                    =  lastIdFilm
                 MESSAGE.HEADER.status       =  MESSAGE.SUCCESS_CREATED_ITEM.status
                 MESSAGE.HEADER.status_code  =  MESSAGE.SUCCESS_CREATED_ITEM.status_code
                 MESSAGE.HEADER.message      =  MESSAGE.SUCCESS_CREATED_ITEM.message
+                MESSAGE.HEADER.response     =  filme
 
                 return MESSAGE.HEADER //201
+
+            }else{
+                return MESSAGE.ERROR_INTERNAL_SERVER_MODEL //500
+            }
             }else{
                 return MESSAGE.ERROR_INTERNAL_SERVER_MODEL //500
             }
         }else{
             return validarDados //400
         }
-    }else{
+     }else{
         return MESSAGE.ERROR_CONTENT_TYPE //415
     }
-    } catch (error) {
+    
+    } catch (error){
         return MESSAGE.ERROR_INTERNAL_SERVER_CONTROLLER //500
     }
 }
